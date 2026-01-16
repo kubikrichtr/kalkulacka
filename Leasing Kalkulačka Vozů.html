@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulačka financování vozů</title>
+    <style>
+        :root {
+            --color-primary: #208090;
+            --color-secondary: #5e5240;
+            --color-background: #fcfcf9;
+            --color-surface: #ffffff;
+            --color-text: #134252;
+            --color-text-secondary: #627076;
+            --color-border: #c0ae80;
+            --color-error: #c01537;
+            --color-success: #208090;
+            --space-8: 8px;
+            --space-12: 12px;
+            --space-16: 16px;
+            --space-20: 20px;
+            --space-24: 24px;
+            --space-32: 32px;
+            --radius-base: 8px;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--color-background);
+            color: var(--color-text);
+            margin: 0;
+            padding: var(--space-20);
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin: 0 0 var(--space-8) 0;
+            color: var(--color-text);
+        }
+
+        .subtitle {
+            color: var(--color-text-secondary);
+            margin-bottom: var(--space-24);
+            font-size: 14px;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-20);
+            margin-bottom: var(--space-32);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: var(--space-8);
+            color: var(--color-text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            padding: var(--space-12) var(--space-12);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            font-size: 14px;
+            background-color: var(--color-surface);
+            color: var(--color-text);
+            font-family: inherit;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(32, 128, 144, 0.1);
+        }
+
+        .info-text {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            margin-top: var(--space-8);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-16);
+            margin-bottom: var(--space-32);
+            padding: var(--space-20);
+            background-color: var(--color-surface);
+            border-radius: var(--radius-base);
+            border: 1px solid var(--color-border);
+        }
+
+        .result-card {
+            padding: var(--space-16);
+            background-color: #f9f9f7;
+            border-radius: var(--radius-base);
+            border-left: 3px solid var(--color-primary);
+        }
+
+        .result-label {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: var(--space-8);
+        }
+
+        .result-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        .result-unit {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            margin-top: var(--space-4);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-bottom: var(--space-32);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            overflow: hidden;
+        }
+
+        th {
+            background-color: #f9f9f7;
+            padding: var(--space-12);
+            text-align: left;
+            font-weight: 600;
+            font-size: 12px;
+            color: var(--color-text);
+            border-bottom: 1px solid var(--color-border);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: var(--space-12);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:nth-child(even) {
+            background-color: #fcfcf9;
+        }
+
+        .highlight-row {
+            background-color: rgba(32, 128, 144, 0.05);
+            font-weight: 600;
+        }
+
+        .highlight-row td {
+            border-bottom: 2px solid var(--color-primary);
+        }
+
+        .error-message {
+            color: var(--color-error);
+            font-size: 13px;
+            margin-top: var(--space-8);
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: var(--space-16);
+        }
+
+        .slider {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: linear-gradient(to right, var(--color-border), var(--color-primary));
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--color-primary);
+            cursor: pointer;
+            border: 2px solid var(--color-surface);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--color-primary);
+            cursor: pointer;
+            border: 2px solid var(--color-surface);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .slider-value {
+            min-width: 50px;
+            text-align: right;
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: var(--space-32);
+            margin-bottom: var(--space-16);
+            color: var(--color-text);
+        }
+
+        .help-text {
+            background-color: rgba(32, 128, 144, 0.05);
+            border-left: 3px solid var(--color-primary);
+            padding: var(--space-12);
+            border-radius: var(--radius-base);
+            font-size: 13px;
+            color: var(--color-text-secondary);
+            margin-bottom: var(--space-20);
+        }
+
+        .currency {
+            color: var(--color-text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Kalkulačka Financování Vozů</h1>
+        <p class="subtitle">Vypočítej měsíční splátku a celkový náklad leasingu podle své kalkulace</p>
+
+        <div class="help-text">
+            💡 Zadej kupní cenu vozu, vybraný procent akontace a požadovanou dobu splácení v měsících.
+        </div>
+
+        <div class="input-grid">
+            <div class="form-group">
+                <label class="form-label">Kupní cena vozidla <span class="currency">(Kč)</span></label>
+                <input type="number" id="purchasePrice" class="form-control" value="800000" min="0" step="10000">
+                <div class="info-text">Zadej cenu nového vozidla</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Doba splácení (měsíce)</label>
+                <select id="loanTerm" class="form-control">
+                    <option value="24">24 měsíců (2 roky)</option>
+                    <option value="36">36 měsíců (3 roky)</option>
+                    <option value="48">48 měsíců (4 roky)</option>
+                    <option value="60">60 měsíců (5 let)</option>
+                    <option value="72">72 měsíců (6 let)</option>
+                    <option value="84">84 měsíců (7 let)</option>
+                    <option value="96">96 měsíců (8 let)</option>
+                </select>
+                <div class="info-text">Dle dostupného financování</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Procento akontace</label>
+                <div class="slider-container">
+                    <input type="range" id="downPaymentSlider" class="slider" min="20" max="60" value="40" step="5">
+                    <span class="slider-value" id="downPaymentValue">40%</span>
+                </div>
+                <div class="info-text">20% - 60% z kupní ceny</div>
+            </div>
+        </div>
+
+        <h2 class="section-title">Přehled financování</h2>
+
+        <div class="results-grid">
+            <div class="result-card">
+                <div class="result-label">Akontace (Kč)</div>
+                <div class="result-value" id="downPaymentAmount">320 000</div>
+            </div>
+            <div class="result-card">
+                <div class="result-label">Zapůjčená částka (Kč)</div>
+                <div class="result-value" id="loanAmount">480 000</div>
+            </div>
+            <div class="result-card">
+                <div class="result-label">Měsíční splátka (Kč)</div>
+                <div class="result-value" id="monthlyPayment">10 000</div>
+            </div>
+            <div class="result-card">
+                <div class="result-label">Celkem zaplaceno (Kč)</div>
+                <div class="result-value" id="totalPayment">480 000</div>
+            </div>
+        </div>
+
+        <h2 class="section-title">Náklady financování</h2>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Položka</th>
+                        <th style="text-align: right;">Kč</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Kupní cena vozidla</td>
+                        <td style="text-align: right;"><strong id="tablePurchasePrice">800 000</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Akontace</td>
+                        <td style="text-align: right;"><strong id="tableDownPayment">-320 000</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Zapůjčená částka</td>
+                        <td style="text-align: right;"><strong id="tableLoanAmount">480 000</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Náklady na pojištění (pojistné d.s.)</td>
+                        <td style="text-align: right;"><strong id="tableInsuranceD">3 939</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Splátka k úhradě za celou dobu</td>
+                        <td style="text-align: right;"><strong id="tableInterest">480 000</strong></td>
+                    </tr>
+                    <tr class="highlight-row">
+                        <td>CELKEM za dobu financování</td>
+                        <td style="text-align: right;" id="tableTotalCost">960 000</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: var(--space-32); padding: var(--space-20); background-color: #f9f9f7; border-radius: var(--radius-base); color: var(--color-text-secondary); font-size: 12px;">
+            <strong>Poznámka:</strong> Tato kalkulačka vychází z vzorců a parametrů z tabelárního přehledu financování. Skutečné nabídky mohou být upraveny dle konkrétní smlouvy.
+        </div>
+    </div>
+
+    <script>
+        // Data z tabulek - průměrné sazby za jednotlivé periody a akontace
+        const loanTermsData = {
+            24: {
+                20: { monthlyPayment: 30116, insurance: 3939, rpsn: 27.6725 },
+                25: { monthlyPayment: 28234, insurance: 3939, rpsn: 28.6989 },
+                30: { monthlyPayment: 26405, insurance: 3939, rpsn: 30.1146 },
+                35: { monthlyPayment: 24519, insurance: 3939, rpsn: 31.4786 },
+                40: { monthlyPayment: 22632, insurance: 3939, rpsn: 33.0770 },
+                45: { monthlyPayment: 20747, insurance: 3939, rpsn: 34.9760 },
+                50: { monthlyPayment: 18861, insurance: 3939, rpsn: 37.2691 },
+                55: { monthlyPayment: 17146, insurance: 3939, rpsn: 41.3314 },
+                60: { monthlyPayment: 15241, insurance: 3939, rpsn: 44.9089 }
+            },
+            36: {
+                20: { monthlyPayment: 20856, insurance: 3939, rpsn: 25.6623 },
+                25: { monthlyPayment: 19552, insurance: 3939, rpsn: 26.6331 },
+                30: { monthlyPayment: 18303, insurance: 3939, rpsn: 27.9720 },
+                35: { monthlyPayment: 16995, insurance: 3939, rpsn: 29.2565 },
+                40: { monthlyPayment: 15687, insurance: 3939, rpsn: 30.7581 },
+                45: { monthlyPayment: 14381, insurance: 3939, rpsn: 32.5371 },
+                50: { monthlyPayment: 13073, insurance: 3939, rpsn: 34.6786 },
+                55: { monthlyPayment: 11888, insurance: 3939, rpsn: 38.1196 },
+                60: { monthlyPayment: 10567, insurance: 3939, rpsn: 41.4264 }
+            },
+            48: {
+                20: { monthlyPayment: 16177, insurance: 3939, rpsn: 24.1927 },
+                25: { monthlyPayment: 15166, insurance: 3939, rpsn: 25.1157 },
+                30: { monthlyPayment: 14210, insurance: 3939, rpsn: 26.3897 },
+                35: { monthlyPayment: 13195, insurance: 3939, rpsn: 27.6066 },
+                40: { monthlyPayment: 12179, insurance: 3939, rpsn: 29.0267 },
+                45: { monthlyPayment: 11165, insurance: 3939, rpsn: 30.7056 },
+                50: { monthlyPayment: 10150, insurance: 3939, rpsn: 32.7218 },
+                55: { monthlyPayment: 9223, insurance: 3939, rpsn: 35.7421 },
+                60: { monthlyPayment: 8198, insurance: 3939, rpsn: 38.8348 }
+            },
+            60: {
+                20: { monthlyPayment: 13197, insurance: 3939, rpsn: 22.5441 },
+                25: { monthlyPayment: 12372, insurance: 3939, rpsn: 23.4271 },
+                30: { monthlyPayment: 11796, insurance: 3939, rpsn: 25.3902 },
+                35: { monthlyPayment: 10954, insurance: 3939, rpsn: 26.5502 },
+                40: { monthlyPayment: 10111, insurance: 3939, rpsn: 27.9020 },
+                45: { monthlyPayment: 9269, insurance: 3939, rpsn: 29.4979 },
+                50: { monthlyPayment: 8426, insurance: 3939, rpsn: 31.4112 },
+                55: { monthlyPayment: 7673, insurance: 3939, rpsn: 34.2820 },
+                60: { monthlyPayment: 6821, insurance: 3939, rpsn: 37.2044 }
+            },
+            72: {
+                20: { monthlyPayment: 11203, insurance: 3939, rpsn: 21.3305 },
+                25: { monthlyPayment: 10503, insurance: 3939, rpsn: 22.1799 },
+                30: { monthlyPayment: 10196, insurance: 3939, rpsn: 24.5952 },
+                35: { monthlyPayment: 9468, insurance: 3939, rpsn: 25.7067 },
+                40: { monthlyPayment: 8739, insurance: 3939, rpsn: 27.0006 },
+                45: { monthlyPayment: 8011, insurance: 3939, rpsn: 28.5266 },
+                50: { monthlyPayment: 7283, insurance: 3939, rpsn: 30.3540 },
+                55: { monthlyPayment: 6646, insurance: 3939, rpsn: 33.1029 },
+                60: { monthlyPayment: 5908, insurance: 3939, rpsn: 35.8866 }
+            },
+            84: {
+                20: { monthlyPayment: 9896, insurance: 3939, rpsn: 20.7627 },
+                25: { monthlyPayment: 9277, insurance: 3939, rpsn: 21.5822 },
+                30: { monthlyPayment: 9059, insurance: 3939, rpsn: 23.9353 },
+                35: { monthlyPayment: 8412, insurance: 3939, rpsn: 25.0051 },
+                40: { monthlyPayment: 7765, insurance: 3939, rpsn: 26.2496 },
+                45: { monthlyPayment: 7118, insurance: 3939, rpsn: 27.7163 },
+                50: { monthlyPayment: 6471, insurance: 3939, rpsn: 29.4716 },
+                55: { monthlyPayment: 5918, insurance: 3939, rpsn: 32.1200 },
+                60: { monthlyPayment: 5260, insurance: 3939, rpsn: 34.7896 }
+            },
+            96: {
+                20: { monthlyPayment: 8822, insurance: 3939, rpsn: 19.9814 },
+                25: { monthlyPayment: 8271, insurance: 3939, rpsn: 20.7757 },
+                30: { monthlyPayment: 8154, insurance: 3939, rpsn: 23.1709 },
+                35: { monthlyPayment: 7572, insurance: 3939, rpsn: 24.2053 },
+                40: { monthlyPayment: 6989, insurance: 3939, rpsn: 25.4081 },
+                45: { monthlyPayment: 6407, insurance: 3939, rpsn: 26.8248 },
+                50: { monthlyPayment: 5824, insurance: 3939, rpsn: 28.5194 },
+                55: { monthlyPayment: 5337, insurance: 3939, rpsn: 31.0829 },
+                60: { monthlyPayment: 4744, insurance: 3939, rpsn: 33.6579 }
+            }
+        };
+
+        const purchasePriceInput = document.getElementById('purchasePrice');
+        const loanTermSelect = document.getElementById('loanTerm');
+        const downPaymentSlider = document.getElementById('downPaymentSlider');
+        const downPaymentValueDisplay = document.getElementById('downPaymentValue');
+
+        function getClosestDownPayment(percentage) {
+            const options = [20, 25, 30, 35, 40, 45, 50, 55, 60];
+            return options.reduce((prev, curr) => 
+                Math.abs(curr - percentage) < Math.abs(prev - percentage) ? curr : prev
+            );
+        }
+
+        function calculateFinance() {
+            const purchasePrice = parseFloat(purchasePriceInput.value) || 0;
+            const loanTerm = parseInt(loanTermSelect.value);
+            const downPaymentPercentage = parseInt(downPaymentSlider.value);
+            const closestDownPayment = getClosestDownPayment(downPaymentPercentage);
+
+            if (purchasePrice <= 0) {
+                document.getElementById('monthlyPayment').textContent = 'Neplatná cena';
+                return;
+            }
+
+            const loanData = loanTermsData[loanTerm];
+            if (!loanData) {
+                document.getElementById('monthlyPayment').textContent = 'Nedostupná lhůta';
+                return;
+            }
+
+            const termData = loanData[closestDownPayment];
+            if (!termData) {
+                document.getElementById('monthlyPayment').textContent = 'Nedostupná kombinace';
+                return;
+            }
+
+            const downPaymentAmount = (purchasePrice * closestDownPayment) / 100;
+            const loanAmount = purchasePrice - downPaymentAmount;
+            const monthlyPaymentBase = (loanAmount / purchasePrice) * termData.monthlyPayment;
+            const totalPayment = monthlyPaymentBase * loanTerm;
+            const totalCost = purchasePrice + (termData.insurance * loanTerm);
+
+            // Update slider display
+            downPaymentValueDisplay.textContent = closestDownPayment + '%';
+
+            // Update results
+            document.getElementById('downPaymentAmount').textContent = 
+                downPaymentAmount.toLocaleString('cs-CZ', {maximumFractionDigits: 0});
+            document.getElementById('loanAmount').textContent = 
+                loanAmount.toLocaleString('cs-CZ', {maximumFractionDigits: 0});
+            document.getElementById('monthlyPayment').textContent = 
+                monthlyPaymentBase.toLocaleString('cs-CZ', {maximumFractionDigits: 0});
+            document.getElementById('totalPayment').textContent = 
+                totalPayment.toLocaleString('cs-CZ', {maximumFractionDigits: 0});
+
+            // Update table
+            document.getElementById('tablePurchasePrice').textContent = 
+                purchasePrice.toLocaleString('cs-CZ', {maximumFractionDigits: 0});
+            document.getElementById('tableDownPayment').textContent = 
+                '-' + downPaymentAmount.toLocaleString('cs-CZ', {maximumFractionDigits: 0});
+            document.getElementById('tableLoanAmount').textContent = 
+                loanAmount.toLocaleString('cs-CZ', {maximumFractionDigits: 0});
+            document.getElementById('tableInsuranceD').textContent = 
+                (termData.insurance * loanTerm).toLocaleString('cs-CZ', {maximumFractionDigits: 0});
+            document.getElementById('tableInterest').textContent = 
+                totalPayment.toLocaleString('cs-CZ', {maximumFractionDigits: 0});
+            document.getElementById('tableTotalCost').textContent = 
+                totalCost.toLocaleString('cs-CZ', {maximumFractionDigits: 0}) + ' Kč';
+        }
+
+        // Event listeners
+        purchasePriceInput.addEventListener('input', calculateFinance);
+        loanTermSelect.addEventListener('change', calculateFinance);
+        downPaymentSlider.addEventListener('input', calculateFinance);
+
+        // Initial calculation
+        calculateFinance();
+    </script>
+</body>
+</html>
