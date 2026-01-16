@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kalkulačka financování vozů</title>
+    <meta name="description" content="Kalkulačka pro výpočet financování vozů s podporou různých dob splácení a procent akontace">
+    <title>Kalkulačka Financování Vozů</title>
     <style>
         :root {
             --color-primary: #208090;
@@ -361,9 +362,20 @@
         <div style="margin-top: var(--space-32); padding: var(--space-20); background-color: #f9f9f7; border-radius: var(--radius-base); color: var(--color-text-secondary); font-size: 12px;">
             <strong>Poznámka:</strong> Tato kalkulačka vychází z vzorců a parametrů z tabelárního přehledu financování. Skutečné nabídky mohou být upraveny dle konkrétní smlouvy.
         </div>
+
+        <footer style="margin-top: var(--space-32); padding-top: var(--space-20); border-top: 1px solid var(--color-border); text-align: center; color: var(--color-text-secondary); font-size: 12px;">
+            <p>© 2026 Kalkulačka Financování Vozů | Hosted on <a href="https://vercel.com" style="color: var(--color-primary); text-decoration: none;">Vercel</a></p>
+            <p><a href="https://github.com" style="color: var(--color-primary); text-decoration: none;">Zdrojový kód na GitHub</a></p>
+        </footer>
     </div>
 
     <script>
+        /**
+         * Kalkulačka financování vozů
+         * Výpočet splátky, nákladů a přehledu financování na základě kupní ceny, 
+         * doby splácení a procenta akontace
+         */
+
         // Data z tabulek - průměrné sazby za jednotlivé periody a akontace
         const loanTermsData = {
             24: {
